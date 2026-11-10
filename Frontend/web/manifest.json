@@ -1,0 +1,11 @@
+{
+    "name": "대중교통 출퇴근 루틴",
+    "short_name": "대중교통 루틴",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#F2F4F6",
+    "theme_color": "#3182F6",
+    "description": "스마트한 대중교통 루틴과 실시간 환승 알림",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}
