@@ -1,0 +1,92 @@
+{
+  "result": {
+    "path": [
+      {
+        "pathType": 2,
+        "info": {
+          "trafficDistance": 6897.0,
+          "totalWalk": 915,
+          "totalTime": 42,
+          "payment": 1650,
+          "busTransitCount": 1,
+          "subwayTransitCount": 0,
+          "firstStartStation": "철산역.광명경찰서",
+          "lastEndStation": "코스트코광명점",
+          "totalStationCount": 19,
+          "busStationCount": 19,
+          "subwayStationCount": 0,
+          "totalDistance": 7812.0
+        },
+        "subPath": [
+          {
+            "trafficType": 3,
+            "distance": 170,
+            "sectionTime": 3
+          },
+          {
+            "trafficType": 2,
+            "distance": 6897,
+            "sectionTime": 28,
+            "stationCount": 19,
+            "lane": [
+              {
+                "busNo": "17",
+                "type": 1,
+                "busID": 12505,
+                "busLocalBlID": "213000005",
+                "busCityCode": 1160,
+                "busProviderCode": 2
+              }
+            ],
+            "intervalTime": 7,
+            "startName": "철산역.광명경찰서",
+            "startX": 126.866471,
+            "startY": 37.474899,
+            "endName": "코스트코광명점",
+            "endX": 126.887404,
+            "endY": 37.420989,
+            "startID": 101537,
+            "startStationCityCode": 1000,
+            "startStationProviderCode": 2,
+            "startLocalStationID": "213000193",
+            "startArsID": "14117",
+            "endID": 82386,
+            "endStationCityCode": 1000,
+            "endStationProviderCode": 2,
+            "endLocalStationID": "213000386",
+            "endArsID": "14226",
+            "passStopList": {
+              "stations": [
+                {"index": 0, "stationID": 101537, "stationName": "철산역.광명경찰서", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000193", "arsID": "14117", "x": "126.866471", "y": "37.474899", "isNonStop": "N"},
+                {"index": 1, "stationID": 101558, "stationName": "철산센트럴푸르지오", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000122", "arsID": "14126", "x": "126.867594", "y": "37.472396", "isNonStop": "N"},
+                {"index": 2, "stationID": 194580, "stationName": "광명이편한세상센트레빌아파트", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000120", "arsID": "14130", "x": "126.868431", "y": "37.469376", "isNonStop": "N"},
+                {"index": 3, "stationID": 194581, "stationName": "하안1동행정복지센터", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000340", "arsID": "14304", "x": "126.869088", "y": "37.465544", "isNonStop": "N"},
+                {"index": 4, "stationID": 101623, "stationName": "광명시민체육관", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000119", "arsID": "14141", "x": "126.871206", "y": "37.463735", "isNonStop": "N"},
+                {"index": 5, "stationID": 101704, "stationName": "광명우체국", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000202", "arsID": "14154", "x": "126.874952", "y": "37.461158", "isNonStop": "N"},
+                {"index": 6, "stationID": 101737, "stationName": "자동차경매장.가림초등학교", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000115", "arsID": "14161", "x": "126.877325", "y": "37.458973", "isNonStop": "N"},
+                {"index": 7, "stationID": 116813, "stationName": "구름산.광명시보건소", "stationCityCode": 1030, "stationProviderCode": 2, "localStationID": "213000114", "arsID": "14181", "x": "126.879843", "y": "37.456104", "isNonStop": "N"},
+                {"index": 8, "stationID": 197116, "stationName": "소하2단지", "stationCityCode": 1030, "stationProviderCode": 2, "localStationID": "213000113", "arsID": "14198", "x": "126.880846", "y": "37.45478", "isNonStop": "N"},
+                {"index": 9, "stationID": 197117, "stationName": "소하3단지", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000313", "arsID": "14352", "x": "126.881377", "y": "37.450253", "isNonStop": "N"},
+                {"index": 10, "stationID": 101826, "stationName": "가리대사거리.소하상업지구", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000112", "arsID": "14197", "x": "126.881242", "y": "37.447909", "isNonStop": "N"},
+                {"index": 11, "stationID": 101804, "stationName": "수자원공사광명가압장", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000201", "arsID": "14189", "x": "126.88071", "y": "37.446444", "isNonStop": "N"},
+                {"index": 12, "stationID": 101765, "stationName": "소하성당", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000110", "arsID": "14170", "x": "126.879304", "y": "37.441466", "isNonStop": "N"},
+                {"index": 13, "stationID": 101758, "stationName": "서면초.안서중.창의경영고", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000108", "arsID": "14168", "x": "126.879194", "y": "37.438239", "isNonStop": "N"},
+                {"index": 14, "stationID": 116814, "stationName": "광명시여성비전센터", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000200", "arsID": "14173", "x": "126.879312", "y": "37.435591", "isNonStop": "N"},
+                {"index": 15, "stationID": 101766, "stationName": "소하2동행정복지센터.광명동굴길입구", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000107", "arsID": "14169", "x": "126.879127", "y": "37.433607", "isNonStop": "N"},
+                {"index": 16, "stationID": 101803, "stationName": "오리서원.충현중학교.광휘고등학교", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000106", "arsID": "14188", "x": "126.880662", "y": "37.429927", "isNonStop": "N"},
+                {"index": 17, "stationID": 151853, "stationName": "기형도문학관.황용사", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000105", "arsID": "14190", "x": "126.880962", "y": "37.426479", "isNonStop": "N"},
+                {"index": 18, "stationID": 165797, "stationName": "이케아.롯데몰광명점", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000232", "arsID": "14213", "x": "126.884183", "y": "37.422617", "isNonStop": "N"},
+                {"index": 19, "stationID": 82386, "stationName": "코스트코광명점", "stationCityCode": 1000, "stationProviderCode": 2, "localStationID": "213000386", "arsID": "14226", "x": "126.887404", "y": "37.420989", "isNonStop": "N"}
+              ]
+            }
+          },
+          {
+            "trafficType": 3,
+            "distance": 745,
+            "sectionTime": 11
+          }
+        ]
+      }
+    ]
+  }
+}
