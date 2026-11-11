@@ -32,12 +32,12 @@ pip install -r requirements.txt
 `.env.example` 파일을 참고하여 `.env` 파일을 생성하고 필요한 API Key 및 데이터베이스 URL을 설정합니다.
 ```env
 DATABASE_URL=sqlite:///./ontime.db # 또는 PostgreSQL 연결 문자열
-ODSAY_API_KEY=#https://lab.odsay.com/contact/contact
+ODSAY_API_KEY= #https://lab.odsay.com/contact/contact
 SUBWAY_SERVICE_KEY= #https://data.seoul.go.kr/dataList/OA-12764/F/1/datasetView.do
 BUS_SERVICE_KEY= #https://www.data.go.kr/iim/api/selectAPIAcountView.do
 KAKAO_REST_API_KEY= #KAKAO LOCAL API
 GYEONGGI_BUS_SERVICE_KEY= #https://www.data.go.kr/iim/api/selectAPIAcountView.do
-FIREBASE_SERVICE_ACCOUNT_PATH=#푸쉬 알림을 위함, 없어도 동작 가능
+FIREBASE_SERVICE_ACCOUNT_PATH= #푸쉬 알림을 위함, 없어도 동작 가능
 SECRET_KEY= #개인의 Private한 충분한 길이의 SECRET_KEY
 
 ```
