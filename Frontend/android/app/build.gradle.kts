@@ -38,18 +38,29 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    // 최신 AGP 8.x / 9.0+ 표준 APK 파일명 지정 방식
+
 }
 
-dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    dependencies {
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     }
-}
 
-flutter {
-    source = "../.."
+    kotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        }
+    }
+
+    flutter {
+        source = "../.."
+    }
+// build.gradle.kts 파일의 가장 맨 아래에 추가해주세요.
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val outputImpl = output as? com.android.build.api.variant.impl.VariantOutputImpl
+            outputImpl?.outputFileName?.set("OnTime.apk")
+        }
+    }
 }

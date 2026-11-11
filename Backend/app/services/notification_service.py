@@ -105,24 +105,33 @@ class NotificationService:
 
     @classmethod
     def build_realtime_status_message(cls, routine: Routine, execution: RoutineExecution) -> tuple[str, str]:
-        """실시간 대중교통(지정 버스/지하철 vs 대체 버스) 도착 정보를 바탕으로
+        """실시간 대중교통(지정 버스/지하철) 도착 정보를 바탕으로
         사용자 스마트폰 알림창에 표출할 푸시 메시지를 동적으로 생성합니다.
+        (첫 번째 대중교통 구간 기준)
         """
         route_data = execution.route_data or {}
         segments = route_data.get("segments", [])
 
-        arrivals = []
+        title = routine.name
+
+        first_transit_segment = None
         for segment in segments:
             if segment.get("transport_type") in {"BUS", "SUBWAY"}:
-                segment_line = segment.get("line_name") or ""
-                for stop in segment.get("stops", []):
-                    for arrival in stop.get("arrivals", []):
-                        item = dict(arrival)
-                        item.setdefault("line_name", segment_line)
-                        item.setdefault("transport_type", segment.get("transport_type"))
-                        arrivals.append(item)
+                first_transit_segment = segment
+                break
 
-        title = routine.name
+        if not first_transit_segment:
+            return title, "도착정보없음"
+
+        segment_line = first_transit_segment.get("line_name") or ""
+        arrivals = []
+        for stop in first_transit_segment.get("stops", []):
+            for arrival in stop.get("arrivals", []):
+                item = dict(arrival)
+                if not item.get("line_name"):
+                    item["line_name"] = segment_line
+                item.setdefault("transport_type", first_transit_segment.get("transport_type"))
+                arrivals.append(item)
         ordered_arrivals = sorted(
             arrivals,
             key=lambda arrival: (

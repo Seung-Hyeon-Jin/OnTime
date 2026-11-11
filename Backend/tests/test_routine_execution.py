@@ -2,14 +2,18 @@ import asyncio
 import unittest
 from datetime import datetime, time, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
-import app.main
 from app.schemas.arrival import ArrivalItem
 from app.schemas.route import RouteResponse, RouteSegment, RouteStop
 from app.schemas.transport import TransportType
-from app.services.notification_service import NotificationService
+from app.services.notification_service import (
+    FakeNotificationProvider,
+    NotificationService,
+)
 from app.services.routine_execution_service import RoutineExecutionService
 from app.services.schedule_service import ScheduleService
+from app.workers.routine_worker import RoutineWorker
 
 
 class FakeRouteService:
@@ -125,3 +129,16 @@ class RoutineExecutionTest(unittest.TestCase):
         self.assertIsNotNone(execution.estimated_arrival_at)
         self.assertEqual(len(notifications), 1)
         self.assertEqual(notifications[0].status, "PENDING")
+
+
+class RoutineWorkerTest(unittest.IsolatedAsyncioTestCase):
+    async def test_start_and_stop_cancel_background_loop(self):
+        execution_service = SimpleNamespace(
+            notification_service=NotificationService(FakeNotificationProvider()),
+        )
+        worker = RoutineWorker(execution_service, interval_seconds=3600)
+        worker._run_loop = AsyncMock()
+        await worker.start()
+        await asyncio.sleep(0)
+        await worker.stop()
+        worker._run_loop.assert_awaited_once()

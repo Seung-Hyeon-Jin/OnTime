@@ -41,15 +41,17 @@ class BusStopRepository:
     def __init__(self, csv_path: str | Path):
         self.csv_path = str(csv_path)
         self._stops = _load_stops(self.csv_path)
+        self._name_index: dict[str, list[BusStop]] = {}
+        for stop in self._stops:
+            norm = _normalize_name(stop.name)
+            self._name_index.setdefault(norm, []).append(stop)
 
     def find_by_name(self, name: str, city_code: str | None = None) -> list[BusStop]:
         normalized_name = _normalize_name(name)
-        return [
-            stop
-            for stop in self._stops
-            if _normalize_name(stop.name) == normalized_name
-            and (city_code is None or stop.city_code == city_code)
-        ]
+        candidates = self._name_index.get(normalized_name, [])
+        if city_code is None:
+            return candidates
+        return [stop for stop in candidates if stop.city_code == city_code]
 
     def search_by_name(
         self,
