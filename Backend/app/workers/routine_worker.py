@@ -28,11 +28,10 @@ class RoutineWorker:
         self.notification_service = notification_service or execution_service.notification_service
 
     async def start(self) -> None:
-        # 앱 수명주기 동안 주기적으로 실행 예정 루틴을 확인합니다.
         self._task = asyncio.create_task(self._run_loop())
 
     async def stop(self) -> None:
-        # 서버가 종료될 때 백그라운드 작업을 정리합니다.
+        # 서버가 종료될 때 백그라운드 작업 정리
         if self._task is None:
             return
         self._task.cancel()
@@ -109,15 +108,11 @@ class RoutineWorker:
                             if (current_time - last_time).total_seconds() >= 270:
                                 should_send = True
 
-                        if should_send:
-                            notification = self.notification_service.enqueue_departure(
-                                routine, execution, db
-                            )
-                            await self.notification_service.send_pending(notification, routine, db)
+                        if should_send and last_notif is not None:
+                            await self.notification_service.send_pending(last_notif, routine, db)
                     except asyncio.CancelledError:
                         raise
                     except Exception as exc:
-                        # 한 루틴의 timeout·5xx·인증 오류가 다른 루틴을 중단시키지 않습니다.
                         category = exc.category if isinstance(exc, ExternalApiError) else "unexpected"
                         logger.exception(
                             "루틴 갱신 실패(%s, category=%s): %s",

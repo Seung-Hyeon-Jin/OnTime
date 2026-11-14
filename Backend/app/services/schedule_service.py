@@ -13,6 +13,12 @@ class ScheduleEntry:
     interval_seconds: int | None = None
 
 
+class EmptyScheduleProvider:
+    reason = "schedule_data_unconfigured"
+
+    def get(self, *, transport_type: str, line_name: str | None, at: datetime) -> ScheduleEntry | None:
+        _ = (transport_type, line_name, at)
+        return None
 
 
 @dataclass(frozen=True)

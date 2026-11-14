@@ -63,8 +63,6 @@ class KakaoClient:
                 if key not in seen:
                     seen.add(key)
                     unique_items.append(item)
-        if len(errors) == 2:
-            raise errors[0]
 
         return LocationSearchResponse(query=query, items=unique_items)
 
