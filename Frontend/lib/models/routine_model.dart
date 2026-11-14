@@ -144,10 +144,7 @@ class RoutineExecutionModel {
   final String status;
   final RouteResponseModel route;
   final String lastCheckedAt;
-  final String? recommendedDepartureAt;
-  final String? estimatedArrivalAt;
-  final bool? transferFeasible;
-  final List<dynamic>? transferDetails;
+
 
   RoutineExecutionModel({
     required this.executionId,
@@ -156,10 +153,6 @@ class RoutineExecutionModel {
     required this.status,
     required this.route,
     required this.lastCheckedAt,
-    this.recommendedDepartureAt,
-    this.estimatedArrivalAt,
-    this.transferFeasible,
-    this.transferDetails,
   });
 
   factory RoutineExecutionModel.fromJson(Map<String, dynamic> json) {
@@ -170,22 +163,7 @@ class RoutineExecutionModel {
       status: json['status'] ?? '',
       route: RouteResponseModel.fromJson(json['route'] ?? {}),
       lastCheckedAt: json['last_checked_at'] ?? '',
-      recommendedDepartureAt: json['recommended_departure_at'],
-      estimatedArrivalAt: json['estimated_arrival_at'],
-      transferFeasible: json['transfer_feasible'],
-      transferDetails: json['transfer_details'],
     );
   }
 
-  String formatTime(String? isoString) {
-    if (isoString == null) return '-';
-    try {
-      final dt = DateTime.parse(isoString).toLocal();
-      final hour = dt.hour.toString().padLeft(2, '0');
-      final minute = dt.minute.toString().padLeft(2, '0');
-      return '$hour:$minute';
-    } catch (_) {
-      return isoString;
-    }
-  }
 }

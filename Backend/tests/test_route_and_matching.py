@@ -163,7 +163,7 @@ class RouteServiceFilterTest(unittest.TestCase):
         filtered = RouteService.filter_bus_arrivals(
             items,
             allowed_lines={"1", "3001"},
-            destination_name="석수역",
+
         )
         self.assertEqual([item.line_name for item in filtered], ["1"])
 
@@ -191,7 +191,7 @@ class RouteServiceFilterTest(unittest.TestCase):
         filtered = RouteService.filter_bus_arrivals(
             items,
             allowed_lines={"1", "3001"},
-            destination_name="석수역",
+
         )
         self.assertEqual([item.line_name for item in filtered], ["1-3", "1A"])
 
@@ -207,7 +207,7 @@ class RouteServiceFilterTest(unittest.TestCase):
         filtered = RouteService.filter_bus_arrivals(
             items,
             allowed_lines={"1", "1-3", "1A", "3001"},
-            destination_name="석수역",
+
         )
         self.assertEqual(filtered, [])
 

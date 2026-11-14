@@ -108,42 +108,12 @@ class RouteSegmentModel {
   }
 }
 
-class TransferDetailModel {
-  final String transferStation;
-  final String? previousArrivalAt;
-  final int walkingSeconds;
-  final String? nextVehicleArrivalAt;
-  final int? waitingSeconds;
-  final bool transferFeasible;
-
-  TransferDetailModel({
-    required this.transferStation,
-    this.previousArrivalAt,
-    required this.walkingSeconds,
-    this.nextVehicleArrivalAt,
-    this.waitingSeconds,
-    required this.transferFeasible,
-  });
-
-  factory TransferDetailModel.fromJson(Map<String, dynamic> json) {
-    return TransferDetailModel(
-      transferStation: json['transfer_station'] ?? '',
-      previousArrivalAt: json['previous_arrival_at'],
-      walkingSeconds: json['walking_seconds'] ?? 0,
-      nextVehicleArrivalAt: json['next_vehicle_arrival_at'],
-      waitingSeconds: json['waiting_seconds'],
-      transferFeasible: json['transfer_feasible'] ?? true,
-    );
-  }
-}
-
 class RouteResponseModel {
   final String provider;
   final int totalDurationMinutes;
   final int transferCount;
   final int? fare;
   final List<RouteSegmentModel> segments;
-  final List<TransferDetailModel> transferDetails;
   final List<RouteResponseModel> alternatives;
 
   RouteResponseModel({
@@ -152,7 +122,6 @@ class RouteResponseModel {
     required this.transferCount,
     this.fare,
     this.segments = const [],
-    this.transferDetails = const [],
     this.alternatives = const [],
   });
 
@@ -174,10 +143,6 @@ class RouteResponseModel {
               ?.map((s) => RouteSegmentModel.fromJson(s))
               .toList() ??
           [],
-      transferDetails: (json['transfer_details'] as List<dynamic>?)
-              ?.map((t) => TransferDetailModel.fromJson(t))
-              .toList() ??
-          [],
       alternatives: (json['alternatives'] as List<dynamic>?)
               ?.map((a) => RouteResponseModel.fromJson(a))
               .toList() ??
@@ -185,3 +150,5 @@ class RouteResponseModel {
     );
   }
 }
+
+

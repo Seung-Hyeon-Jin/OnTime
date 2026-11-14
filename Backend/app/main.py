@@ -75,6 +75,7 @@ try:
         conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1;"))
         conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS device_token VARCHAR;"))
         conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE;"))
+        conn.execute(text("ALTER TABLE routines ADD COLUMN IF NOT EXISTS exclude_holidays BOOLEAN NOT NULL DEFAULT FALSE;"))
         conn.execute(text("ALTER TABLE routine_notifications DROP CONSTRAINT IF EXISTS routine_notifications_execution_id_fkey;"))
         conn.execute(text("ALTER TABLE routine_notifications ADD CONSTRAINT routine_notifications_execution_id_fkey FOREIGN KEY (execution_id) REFERENCES routine_executions(execution_id) ON DELETE CASCADE;"))
         conn.commit()
@@ -144,4 +145,4 @@ def health_check(db: Session = Depends(get_db)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app",host="127.0.0.1", port=8000, reload= True)
+    uvicorn.run("app.main:app",host="0.0.0.0", port=8000, reload= True)

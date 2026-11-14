@@ -8,7 +8,7 @@ import 'providers/auth_provider.dart';
 import 'providers/routine_provider.dart';
 import 'providers/route_search_provider.dart';
 import 'providers/arrival_provider.dart';
-
+import 'dart:async';
 import 'screens/splash_screen.dart';
 import 'services/push_notification_service.dart';
 
@@ -16,16 +16,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb) {
     try {
-      await Firebase.initializeApp().timeout(
-        const Duration(seconds: 3),
-        onTimeout: () {
-          debugPrint('Firebase initialization timed out');
-          return Firebase.app();
-        },
-      );
-    } catch (e) {
-      debugPrint('Firebase initialization error: $e');
-    }
+      await Firebase.initializeApp().timeout(const Duration(seconds: 3));
+  }   on TimeoutException {
+        debugPrint('Firebase 초기화 타임아웃(푸쉬 알림 x)');
+}     catch (e) {
+        debugPrint('Firebase 초기화 에러(푸쉬 알림 x): $e');
+}
 
     try {
       await PushNotificationService.instance.initialize().timeout(

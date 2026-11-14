@@ -65,10 +65,7 @@ class RouteService:
         response: RouteResponse,
         bus_candidates: list[RouteStop] | None = None,
     ) -> RouteResponse:
-        refreshed_route = await self._refresh_route_arrivals(
-            response,
-            bus_candidates=bus_candidates,
-        )
+        refreshed_route = await self._refresh_route_arrivals(response)
         refreshed_alternatives = await asyncio.gather(
             *(
                 self._refresh_route_arrivals(alternative)
@@ -82,11 +79,7 @@ class RouteService:
             "alternatives": list(refreshed_alternatives),
         })
 
-    async def _refresh_route_arrivals(
-        self,
-        response: RouteResponse,
-        bus_candidates: list[RouteStop] | None = None,
-    ) -> RouteResponse:
+    async def _refresh_route_arrivals(self, response: RouteResponse) -> RouteResponse:
         for segment in response.segments:
             if segment.transport_type.value == "BUS":
                 for index, stop in enumerate(segment.stops):
@@ -169,40 +162,6 @@ class RouteService:
         return response
 
     @staticmethod
-    def select_preferred_route(response: RouteResponse) -> RouteResponse:
-        candidates = [response, *response.alternatives]
-        primary_transport = RouteService._first_transit_type(response)
-        same_transport_candidates = [
-            route
-            for route in candidates
-            if RouteService._first_transit_type(route) == primary_transport
-        ]
-        if same_transport_candidates:
-            candidates = same_transport_candidates
-
-        def score(route: RouteResponse) -> tuple:
-            errors = sum(
-                1 for segment in route.segments for stop in segment.stops if stop.arrival_error
-            )
-            infeasible = sum(
-                1 for item in route.transfer_details if not item.transfer_feasible
-            )
-            return (
-                errors > 0,
-                infeasible > 0,
-                route.total_duration_minutes,
-                route.transfer_count,
-                route.fare if route.fare is not None else 10**9,
-            )
-
-        selected = min(candidates, key=score)
-        if selected is response:
-            return response
-        return selected.model_copy(
-            update={"alternatives": [item for item in candidates if item is not selected]}
-        )
-
-    @staticmethod
     def _first_transit_type(response: RouteResponse) -> str:
         for segment in response.segments:
             if segment.transport_type.value in {"BUS", "SUBWAY"}:
@@ -241,7 +200,6 @@ class RouteService:
     def filter_bus_arrivals(
         arrivals: list,
         allowed_lines: set[str] | None = None,
-        destination_name: str | None = None,
     ) -> list:
         if not arrivals:
             return []
@@ -290,19 +248,7 @@ class RouteService:
                 compact = compact[len(prefix):]
         return compact.strip()
 
-    @staticmethod
-    def _collect_boundary_stops(response: RouteResponse, transport_type: str) -> list[RouteStop]:
-        candidates: list[RouteStop] = []
-        for segment in response.segments:
-            if segment.transport_type.value != transport_type or not segment.stops:
-                continue
-            for stop in (segment.stops[0], segment.stops[-1]):
-                if stop.name not in {candidate.name for candidate in candidates}:
-                    candidates.append(stop)
-        return candidates
 
-    def _collect_bus_candidates(self, response: RouteResponse) -> list[RouteStop]:
-        return [stop for stop in self._collect_boundary_stops(response, "BUS") if stop.station_id]
 
     def _collect_first_bus_candidate(self, response: RouteResponse) -> list[RouteStop]:
         for segment in response.segments:
@@ -313,8 +259,6 @@ class RouteService:
                 return []
         return []
 
-    def _collect_subway_candidates(self, response: RouteResponse) -> list[RouteStop]:
-        return self._collect_boundary_stops(response, "SUBWAY")
 
     @staticmethod
     def _subway_lookup_name(name: str) -> str:
@@ -378,12 +322,9 @@ class RouteService:
             arrivals = self.filter_bus_arrivals(
                 response.items,
                 allowed_lines=allowed_lines,
-                destination_name=destination_name,
             )
             return stop.station_id or "", {"arrivals": arrivals}
         except Exception as exc:
-            if isinstance(exc, RouteMatchingError):
-                raise
             return stop.station_id or "", {"arrival_error": "도착정보를 조회하지 못했습니다."}
 
     async def _get_subway_arrivals(

@@ -29,7 +29,7 @@ class PushNotificationService {
           )
           .timeout(const Duration(seconds: 2));
     } catch (e) {
-      // Ignored if FCM permission request fails or times out
+
     }
 
     try {
@@ -53,7 +53,7 @@ class PushNotificationService {
       FirebaseMessaging.onMessage.listen(_showForegroundNotification);
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     } catch (e) {
-      // Ignored if local notification initialization fails
+
     }
   }
 

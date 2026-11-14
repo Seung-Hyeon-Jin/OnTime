@@ -72,17 +72,6 @@ class NotificationService:
             else FakeNotificationProvider()
         )
 
-    @staticmethod
-    def _normalize_line(name: str) -> str:
-        if not name:
-            return ""
-        cleaned = "".join(name.split()).removesuffix("번")
-        prefixes = ["마을", "일반", "지선", "간선", "직행", "좌석", "광역", "시내"]
-        for prefix in prefixes:
-            if cleaned.startswith(prefix):
-                cleaned = cleaned[len(prefix):]
-        return cleaned.strip()
-
     @classmethod
     def _arrival_text(cls, arrival: dict) -> str:
         raw_message = str(arrival.get("arrival_message") or "").strip()

@@ -1,8 +1,10 @@
+import logging
 from app.clients.http_client import HttpClient
 from app.core.config import settings
 from app.schemas.location import LocationSearchResponse, LocationSearchResultItem
 
-
+logger = logging.getLogger(__name__)
+errors = []
 class KakaoClient:
     KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
     ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
@@ -27,7 +29,7 @@ class KakaoClient:
 
         items = []
 
-        # 1. 키워드/장소명 검색 (e.g. 단국대학교 천안캠퍼스, 카카오 오피스)
+        # 1. 키워드/장소명 검색
         try:
             kw_data = await self.http_client.get_json(
                 self.KEYWORD_URL,
@@ -36,10 +38,11 @@ class KakaoClient:
                 provider="kakao",
             )
             items.extend(self._parse_keyword_docs(kw_data))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("키워드 검색 실패 (쿼리: %r): %s", query,e)
+            errors.append(e)
 
-        # 2. 도로명/지번 주소 검색 (e.g. 성채안로 26, 오목천동)
+        # 2. 도로명/지번 주소 검색
         try:
             addr_data = await self.http_client.get_json(
                 self.ADDRESS_URL,
@@ -48,8 +51,9 @@ class KakaoClient:
                 provider="kakao",
             )
             items.extend(self._parse_address_docs(addr_data))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("주소 검색 실패 (쿼리: %r): %s", query, e)
+            errors.append(e)
 
         # 카카오 API에서 결과가 검색된 경우 중복 제거 후 반환
         if items:
@@ -60,16 +64,19 @@ class KakaoClient:
                 if key not in seen:
                     seen.add(key)
                     unique_items.append(item)
-            return LocationSearchResponse(query=query, items=unique_items)
+        if len(errors) == 2:
+            raise errors[0]
 
-        # 검색 결과가 없는 경우 동적 폴백 생성
+        return LocationSearchResponse(query=query, items=unique_items)
+
+
         return self._fallback_search(query)
 
     async def reverse_geocode(self, lat: float, lng: float) -> dict:
         api_key = settings.KAKAO_REST_API_KEY
         if not api_key or api_key.strip() == "" or "YOUR_KAKAO" in api_key:
             return {
-                "address_name": "성채안로 26",
+                "address_name": "내위치",
                 "latitude": lat,
                 "longitude": lng,
             }

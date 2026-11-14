@@ -4,13 +4,13 @@ import 'package:flutter/foundation.dart';
 class ApiConfig {
   // Android 에뮬레이터에서는 10.0.2.2를 사용하기 위해 physicalPhoneIp를 null로 둡니다.
   // 실제 휴대폰 USB 연결 시에는 `adb reverse tcp:8000 tcp:8000`을 사용하거나 PC IP를 입력하세요.
-  static String? physicalPhoneIp;
+  static const String physicalPhoneIp = String.fromEnvironment('API_HOST');
 
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://127.0.0.1:8000';
     }
-    if (physicalPhoneIp != null && physicalPhoneIp!.isNotEmpty) {
+    if (physicalPhoneIp!.isNotEmpty) {
       return 'http://$physicalPhoneIp:8000';
     }
     if (Platform.isAndroid) {

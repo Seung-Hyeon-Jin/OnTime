@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,43 +8,58 @@ import '../core/network/api_client.dart';
 import '../models/user_model.dart';
 import '../services/push_notification_service.dart';
 
+enum AutoLoginResult { authenticated, noSession, expired, retryable }
+
 class AuthProvider with ChangeNotifier {
   String? _token;
   UserModel? _user;
   bool _isLoading = false;
   String? _errorMessage;
-  bool _isAutoLoginDone = false;
+  Future<AutoLoginResult>? _autoLoginInFlight;
 
   String? get token => _token;
   UserModel? get user => _user;
-  bool get isAuth => _token != null && _token!.isNotEmpty;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isAutoLoginDone => _isAutoLoginDone;
 
   ApiClient get _apiClient => ApiClient(token: _token);
 
-  Future<bool> tryAutoLogin() async {
-    if (_isAutoLoginDone) return isAuth;
+  /// 동시 호출은 진행 중인 시도에 합류하고, 끝난 뒤에는 다시 시도할 수 있습니다.
+  Future<AutoLoginResult> tryAutoLogin() {
+    return _autoLoginInFlight ??=
+        _runAutoLogin().whenComplete(() => _autoLoginInFlight = null);
+  }
 
+  Future<AutoLoginResult> _runAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey('jwt_token')) {
-      _isAutoLoginDone = true;
+    final savedToken = prefs.getString('jwt_token');
+    if (savedToken == null || savedToken.isEmpty) {
       notifyListeners();
-      return false;
+      return AutoLoginResult.noSession;
     }
 
-    _token = prefs.getString('jwt_token');
+    _token = savedToken;
     try {
-      await fetchMe();
-      _isAutoLoginDone = true;
+      // 스플래시가 시도를 버리지 않도록 시간 제한은 이 안쪽에서 겁니다.
+      await fetchMe().timeout(const Duration(seconds: 5));
+      return AutoLoginResult.authenticated;
+    } on ApiException catch (e) {
+      // 401(토큰 만료/무효)만 세션을 정리하고, 네트워크·서버 오류는 토큰을 보존합니다.
+      if (e.statusCode == 401) {
+        await logout();
+        return AutoLoginResult.expired;
+      }
+      _errorMessage = e.message;
       notifyListeners();
-      return true;
-    } catch (_) {
-      await logout();
-      _isAutoLoginDone = true;
+      return AutoLoginResult.retryable;
+    } on TimeoutException {
+      _errorMessage = '서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.';
       notifyListeners();
-      return false;
+      return AutoLoginResult.retryable;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return AutoLoginResult.retryable;
     }
   }
 
@@ -149,20 +166,10 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> sendTestNotification() async {
-    if (_token == null) return;
-    try {
-      await _apiClient.post(ApiConfig.authTestNotification);
-    } catch (e) {
-      _errorMessage = e.toString();
-      rethrow;
-    }
-  }
 
   Future<void> logout() async {
     _token = null;
     _user = null;
-    _isAutoLoginDone = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
     notifyListeners();

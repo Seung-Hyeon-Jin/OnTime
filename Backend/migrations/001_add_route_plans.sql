@@ -7,6 +7,7 @@ ALTER TABLE routines ADD COLUMN IF NOT EXISTS departure_city_code VARCHAR;
 ALTER TABLE routines ADD COLUMN IF NOT EXISTS arrival_latitude DOUBLE PRECISION;
 ALTER TABLE routines ADD COLUMN IF NOT EXISTS arrival_longitude DOUBLE PRECISION;
 ALTER TABLE routines ADD COLUMN IF NOT EXISTS arrival_city_code VARCHAR;
+ALTER TABLE routines ADD COLUMN IF NOT EXISTS exclude_holidays BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- 루틴 등록 시 계산한 경로 JSON과 요약 정보를 저장합니다.
 CREATE TABLE IF NOT EXISTS route_plans (

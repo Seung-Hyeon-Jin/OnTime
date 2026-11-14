@@ -20,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   String _statusText = '앱을 시작하는 중...';
+  bool _isRetryable = false;
 
   @override
   void initState() {
@@ -53,7 +54,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeApp() async {
-    bool isLoggedIn = false;
+    AutoLoginResult result = AutoLoginResult.noSession;
+    String? retryMessage;
     final minSplashDuration =
         Future.delayed(const Duration(milliseconds: 1000));
 
@@ -62,17 +64,18 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (mounted) {
         setState(() {
+          _isRetryable = false;
           _statusText = '자동 로그인 정보 확인 중...';
         });
       }
 
-      // 1. tryAutoLogin (최대 3초 타임아웃 제한)
-      isLoggedIn = await auth.tryAutoLogin().timeout(
-            const Duration(seconds: 3),
-            onTimeout: () => false,
-          );
+      // 1. 자동 로그인 (일시적 오류는 재시도 가능 상태로 돌려받음)
+      result = await auth.tryAutoLogin();
+      if (result == AutoLoginResult.retryable) {
+        retryMessage = auth.errorMessage;
+      }
 
-      if (isLoggedIn && mounted) {
+      if (result == AutoLoginResult.authenticated && mounted) {
         setState(() {
           _statusText = '실시간 루틴 정보 불러오는 중...';
         });
@@ -87,40 +90,46 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } catch (e) {
       debugPrint('Splash initialization error: $e');
-    } finally {
-      await minSplashDuration;
-
-      if (mounted) {
-        final auth = Provider.of<AuthProvider>(context, listen: false);
-        final finalAuthStatus = auth.isAuth;
-
-        if (finalAuthStatus) {
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const MainNavigationScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 350),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const LoginScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 350),
-            ),
-          );
-        }
-      }
     }
+
+    await minSplashDuration;
+
+    if (!mounted) return;
+
+    if (result == AutoLoginResult.retryable) {
+      setState(() {
+        _isRetryable = true;
+        _statusText = retryMessage ?? '네트워크 연결을 확인해 주세요.';
+      });
+      return;
+    }
+
+    if (result == AutoLoginResult.authenticated) {
+      _navigateTo(const MainNavigationScreen());
+    } else {
+      _navigateTo(const LoginScreen());
+    }
+  }
+
+  void _retryAutoLogin() {
+    if (!mounted || !_isRetryable) return;
+    setState(() {
+      _isRetryable = false;
+      _statusText = '다시 시도하는 중...';
+    });
+    _initializeApp();
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
   }
 
   @override
@@ -198,14 +207,23 @@ class _SplashScreenState extends State<SplashScreen>
               right: 0,
               child: Column(
                 children: [
-                  const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: tossBlue,
+                  if (_isRetryable)
+                    SizedBox(
+                      width: 160,
+                      child: ElevatedButton(
+                        onPressed: _retryAutoLogin,
+                        child: const Text('다시 시도'),
+                      ),
+                    )
+                  else
+                    const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: tossBlue,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 16),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),

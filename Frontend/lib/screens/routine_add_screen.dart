@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/material.dart';
 import '../core/network/api_client.dart';
 import '../models/location_search_model.dart';
 import '../models/route_model.dart';
@@ -67,6 +66,22 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     }
   }
 
+  void _showLocationError(String message) {
+    _originNameController.clear();
+    _originLatController.clear();
+    _originLngController.clear();
+    _originCityCodeController.clear();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFF04438),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   // 내 위치 감지하기 (스마트폰 / 브라우저 디바이스 실시간 GPS 센서 및 Reverse Geocoding)
   Future<void> _setMyCurrentLocation() async {
     setState(() {
@@ -78,24 +93,25 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       double? lng;
 
       // 브라우저 및 기기 GPS 센서로 실제 현재 위치 위도/경도 감지
-      if (kIsWeb) {
-        LocationPermission permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          return;
-        }
 
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-
-        lat = position.latitude;
-        lng = position.longitude;
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showLocationError('위치 권한이 필요합니다. 권한을 허용해 주세요.');
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationError('위치 권한이 차단되어 있습니다. 앱 설정에서 위치 권한을 허용해 주세요.');
+        return;
       }
 
-      if (lat == null || lng == null) {
-        throw Exception('현재 디바이스의 GPS 위치를 감지할 수 없습니다.');
-      }
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      lat = position.latitude;
+      lng = position.longitude;
+
+
 
       // 백엔드 카카오 Reverse Geocoding을 호출하여 실시간 도로명 주소 변환
       final api = ApiClient();
@@ -123,23 +139,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         );
       }
     } catch (_) {
-      setState(() {
-        _originNameController.clear();
-        _originLatController.clear();
-        _originLngController.clear();
-        _originCityCodeController.clear();
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('현재 위치 감지에 실패했습니다. 카카오 장소 검색으로 출발지를 선택해 주세요.'),
-            backgroundColor: const Color(0xFFF04438),
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
+      _showLocationError('현재 위치 감지에 실패했습니다. 카카오 장소 검색으로 출발지를 선택해 주세요.');
     }
   }
 
