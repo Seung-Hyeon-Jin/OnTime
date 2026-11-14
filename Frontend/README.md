@@ -21,9 +21,10 @@ Flutter로 제작된 OnTime 대중교통 루틴 및 실시간 도착 정보 모�
 lib/
 ├── core/                  # 환경 설정, 네트워크 API 클라이언트 등
 ├── models/                # 데이터 모델 (루틴, 경로, 도착정보, 사용자 등)
-├── providers/             # 상태 관리 프로바이더 (Auth, Routine, Arrival, RouteSearch)
-├── screens/               # 주요 화면 (Login, Home, RoutineAdd/Edit, Arrival, Profile)
+├── providers/             # 상태 관리 프로바이더 (Auth, Routine, RouteSearch)
+├── screens/               # 주요 화면 (Login, Home, RoutineAdd/Edit, Profile)
 ├── services/              # 푸시 알림 및 외부 서비스 연동
+├── utils/                 # 버스/지하철 실시간 정규화 및 필터 유틸리티
 └── widgets/               # 공통 위젯 및 카드 컴포넌트
 ```
 
@@ -52,6 +53,5 @@ flutter run
 
 ## ✨ 주요 화면 흐름
 1. **스플래시 / 로그인 화면 (`splash_screen.dart`, `login_screen.dart`):** 사용자 인증 및 토큰 관리
-2. **메인 홈 화면 (`home_screen.dart`):** 등록된 출퇴근 루틴 목록 확인 및 빠른 실시간 조회
-3. **루틴 추가/수정 화면 (`routine_add_screen.dart`):** 출발지·도착지 검색 및 대중교통 경로 선택
-4. **도착 정보 화면 (`arrival_screen.dart`):** 실시간 버스·지하철 도착 정보 및 환승 가능 여부 모니터링
+2. **메인 홈 화면 (`home_screen.dart`):** 등록된 출퇴근 루틴 카드 목록 확인, 실시간 버스·지하철 도착 정보 및 환승 가능 여부 모니터링
+3. **루틴 추가/수정 화면 (`routine_add_screen.dart`, `routine_edit_screen.dart`):** 출발지·도착지 검색 및 대중교통 경로 선택/수정
