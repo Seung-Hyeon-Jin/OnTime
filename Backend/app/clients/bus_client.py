@@ -116,79 +116,37 @@ class BusClient:
 
 
     def _parse_national_response(self, data: dict) -> ArrivalResponse:
-        items = []
+        if not isinstance(data, dict) or not isinstance(data.get("response"), dict):
+            raise ExternalApiError("public-bus", "버스 API 응답 구조가 올바르지 않습니다.")
 
-        response = data.get("response")
-        if not isinstance(response, dict):
-            raise ExternalApiError(
-                "public-bus",
-                "버스 API 응답 구조가 올바르지 않습니다.",
-            )
-
-        header = response.get("header")
-        if not isinstance(header, dict):
-            raise ExternalApiError(
-                "public-bus",
-                "버스 API 응답 헤더가 없습니다.",
-            )
-
+        response = data["response"]
+        header = response.get("header") or {}
         result_code = str(header.get("resultCode", ""))
         if result_code not in {"00", "0000"}:
             result_message = header.get("resultMsg") or "알 수 없는 오류"
-            raise ExternalApiError(
-                "public-bus",
-                f"버스 API 오류({result_code}): {result_message}",
+            raise ExternalApiError("public-bus", f"버스 API 오류({result_code}): {result_message}")
+
+        raw_items = (response.get("body") or {}).get("items") or {}
+        if isinstance(raw_items, dict):
+            raw_items = raw_items.get("item", [])
+        if isinstance(raw_items, dict):
+            raw_items = [raw_items]
+        elif not isinstance(raw_items, list):
+            raw_items = []
+
+        items = [
+            ArrivalItem(
+                transport_type=TransportType.BUS,
+                station_or_stop_name=self._as_text(item.get("nodenm")),
+                line_name=self._as_text(item.get("routeno")),
+                arrival_seconds=self._parse_seconds(item.get("arrtime")),
+                arrival_message=self._as_text(item.get("arrmsg1") or item.get("arrmsg2")),
+                direction=self._as_text(item.get("routedest")),
+                vehicle_number=self._as_text(item.get("vehicleno")),
             )
-
-        body = response.get("body", {})
-        if not isinstance(body, dict):
-            raise ExternalApiError(
-                "public-bus",
-                "버스 API 응답 본문이 올바르지 않습니다.",
-            )
-
-        raw_items = body.get("items", {})
-        if raw_items in (None, "", "null"):
-            response_items = []
-        elif isinstance(raw_items, dict):
-            response_items = raw_items.get("item", [])
-        else:
-            raise ExternalApiError(
-                "public-bus",
-                "버스 API 정류장 도착정보 형식이 올바르지 않습니다.",
-            )
-
-        if response_items in (None, "", "null"):
-            response_items = []
-
-        if isinstance(response_items, dict):
-            response_items = [response_items]
-        elif not isinstance(response_items, list):
-            raise ExternalApiError(
-                "public-bus",
-                "버스 API 도착정보 목록 형식이 올바르지 않습니다.",
-            )
-
-        for item in response_items:
-            if not isinstance(item, dict):
-                raise ExternalApiError(
-                    "public-bus",
-                    "버스 API 도착정보 항목 형식이 올바르지 않습니다.",
-                )
-
-            items.append(
-                ArrivalItem(
-                    transport_type=TransportType.BUS,
-                    station_or_stop_name=self._as_text(item.get("nodenm")),
-                    line_name=self._as_text(item.get("routeno")),
-                    arrival_seconds=self._parse_seconds(item.get("arrtime")),
-                    arrival_message=self._as_text(
-                        item.get("arrmsg1") or item.get("arrmsg2")
-                    ),
-                    direction=self._as_text(item.get("routedest")),
-                    vehicle_number=self._as_text(item.get("vehicleno")),
-                )
-            )
+            for item in raw_items
+            if isinstance(item, dict)
+        ]
 
         return ArrivalResponse(
             provider="public-bus",

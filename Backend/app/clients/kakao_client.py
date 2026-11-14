@@ -1,9 +1,12 @@
+from __future__ import annotations
 import logging
 from app.clients.http_client import HttpClient
 from app.core.config import settings
 from app.schemas.location import LocationSearchResponse, LocationSearchResultItem
 
 logger = logging.getLogger(__name__)
+
+
 class KakaoClient:
     KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
     ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
@@ -13,20 +16,12 @@ class KakaoClient:
 
     async def search_places(self, query: str) -> LocationSearchResponse:
         api_key = settings.KAKAO_REST_API_KEY
-
-        # 카카오 API 키가 설정되어 있지 않거나 비어있는 경우
         if not api_key or api_key.strip() == "" or "YOUR_KAKAO" in api_key:
             return self._fallback_search(query)
 
-        headers = {
-            "Authorization": f"KakaoAK {api_key.strip()}",
-        }
-        params = {
-            "query": query,
-            "size": 15,
-        }
-
-        items = []
+        headers = {"Authorization": f"KakaoAK {api_key.strip()}"}
+        params = {"query": query, "size": 15}
+        items: list[LocationSearchResultItem] = []
 
         # 1. 키워드/장소명 검색
         try:
@@ -36,10 +31,9 @@ class KakaoClient:
                 headers=headers,
                 provider="kakao",
             )
-            items.extend(self._parse_keyword_docs(kw_data))
+            items.extend(self._parse_docs(kw_data))
         except Exception as e:
-            logger.warning("키워드 검색 실패 (쿼리: %r): %s", query,e)
-
+            logger.warning("키워드 검색 실패 (쿼리: %r): %s", query, e)
 
         # 2. 도로명/지번 주소 검색
         try:
@@ -49,32 +43,28 @@ class KakaoClient:
                 headers=headers,
                 provider="kakao",
             )
-            items.extend(self._parse_address_docs(addr_data))
+            items.extend(self._parse_docs(addr_data, default_category="주소"))
         except Exception as e:
             logger.warning("주소 검색 실패 (쿼리: %r): %s", query, e)
 
+        # 중복 장소 제거
+        seen = set()
+        unique_items = []
+        for item in items:
+            key = f"{item.place_name}_{item.latitude}_{item.longitude}"
+            if key not in seen:
+                seen.add(key)
+                unique_items.append(item)
 
-        # 카카오 API에서 결과가 검색된 경우 중복 제거 후 반환
-        if items:
-            seen = set()
-            unique_items = []
-            for item in items:
-                key = f"{item.place_name}_{item.latitude}_{item.longitude}"
-                if key not in seen:
-                    seen.add(key)
-                    unique_items.append(item)
+        if not unique_items:
+            return self._fallback_search(query)
 
         return LocationSearchResponse(query=query, items=unique_items)
-
 
     async def reverse_geocode(self, lat: float, lng: float) -> dict:
         api_key = settings.KAKAO_REST_API_KEY
         if not api_key or api_key.strip() == "" or "YOUR_KAKAO" in api_key:
-            return {
-                "address_name": "내위치",
-                "latitude": lat,
-                "longitude": lng,
-            }
+            return {"address_name": "내 위치", "latitude": lat, "longitude": lng}
 
         headers = {"Authorization": f"KakaoAK {api_key.strip()}"}
         url = "https://dapi.kakao.com/v2/local/geo/coord2address.json"
@@ -91,8 +81,8 @@ class KakaoClient:
                 addr = doc.get("address") or {}
                 name = road.get("address_name") or addr.get("address_name") or "내 현재 위치"
                 return {"address_name": name, "latitude": lat, "longitude": lng}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("역지오코딩 실패 (lat=%s, lng=%s): %s", lat, lng, e)
 
         return {
             "address_name": f"내 위치 ({lat:.4f}, {lng:.4f})",
@@ -100,18 +90,26 @@ class KakaoClient:
             "longitude": lng,
         }
 
-    def _parse_keyword_docs(self, data: dict) -> list[LocationSearchResultItem]:
+    def _parse_docs(
+        self, data: dict, default_category: str | None = None
+    ) -> list[LocationSearchResultItem]:
         documents = data.get("documents", [])
         items = []
 
         for doc in documents:
+            if not isinstance(doc, dict):
+                continue
             try:
-                place_name = doc.get("place_name", "")
-                address_name = doc.get("address_name", "")
-                road_address_name = doc.get("road_address_name") or address_name
+                road = doc.get("road_address") or {}
+                address = doc.get("address") or {}
+
+                place_name = doc.get("place_name") or road.get("address_name") or address.get("address_name") or "검색 장소"
+                address_name = address.get("address_name") or doc.get("address_name") or place_name
+                road_address_name = road.get("address_name") or doc.get("road_address_name") or address_name
+
                 lng = float(doc.get("x", 0.0))
                 lat = float(doc.get("y", 0.0))
-                category = doc.get("category_group_name") or doc.get("category_name")
+                category = default_category or doc.get("category_group_name") or doc.get("category_name") or "장소"
 
                 if lat != 0.0 and lng != 0.0:
                     items.append(
@@ -122,36 +120,6 @@ class KakaoClient:
                             latitude=lat,
                             longitude=lng,
                             category_name=category,
-                        )
-                    )
-            except (ValueError, TypeError):
-                continue
-
-        return items
-
-    def _parse_address_docs(self, data: dict) -> list[LocationSearchResultItem]:
-        documents = data.get("documents", [])
-        items = []
-
-        for doc in documents:
-            try:
-                address = doc.get("address") or {}
-                road = doc.get("road_address") or {}
-                place_name = road.get("address_name") or address.get("address_name") or "검색 주소"
-                address_name = address.get("address_name") or place_name
-                road_address_name = road.get("address_name") or address_name
-                lng = float(doc.get("x", 0.0))
-                lat = float(doc.get("y", 0.0))
-
-                if lat != 0.0 and lng != 0.0:
-                    items.append(
-                        LocationSearchResultItem(
-                            place_name=place_name,
-                            address_name=address_name,
-                            road_address_name=road_address_name,
-                            latitude=lat,
-                            longitude=lng,
-                            category_name="주소",
                         )
                     )
             except (ValueError, TypeError):

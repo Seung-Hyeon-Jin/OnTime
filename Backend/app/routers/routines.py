@@ -63,27 +63,12 @@ async def create_routine(
 		)
 
 	# user_id는 요청값이 아니라 인증된 사용자에서 가져와 소유자를 고정합니다.
-	routine = Routine(
-		user_id=current_user.user_id,
-		name=routine_in.name,
-		departure_stop=routine_in.departure_stop,
-		arrival_stop=routine_in.arrival_stop,
-		departure_latitude=routine_in.origin.latitude if routine_in.origin else None,
-		departure_longitude=routine_in.origin.longitude if routine_in.origin else None,
-		departure_city_code=routine_in.origin.city_code if routine_in.origin else None,
-		arrival_latitude=routine_in.destination.latitude if routine_in.destination else None,
-		arrival_longitude=routine_in.destination.longitude if routine_in.destination else None,
-		arrival_city_code=routine_in.destination.city_code if routine_in.destination else None,
-		scheduled_days=routine_in.scheduled_days,
-		departure_time=routine_in.departure_time,
-		notify_mins_before=routine_in.notify_mins_before,
-		enabled=routine_in.enabled,
-		exclude_holidays=routine_in.exclude_holidays,
-	)
+	routine = Routine(user_id=current_user.user_id)
+	_apply_routine_attributes(routine, routine_in)
+
 	if route_response is not None:
-		# 계산한 경로를 JSON으로 저장해 실행 시 기본 계획으로 재사용합니다.
 		routine.route_plan = _to_route_plan(route_response)
-	# 새 루틴을 DB에 저장하고 생성된 기본 키를 반영합니다.
+
 	db.add(routine)
 	db.commit()
 	db.refresh(routine)
@@ -143,7 +128,32 @@ async def update_routine(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="이미 동일한 이름의 루틴이 존재합니다.",
 		)
-	# PUT 방식이므로 요청으로 전달된 모든 루틴 필드를 갱신합니다.
+	_apply_routine_attributes(routine, routine_in)
+
+	route_response = await _build_route_plan(routine_in, route_service)
+	if route_response is None:
+		routine.route_plan = None
+	else:
+		route_response = _select_route_with_alternatives(
+			route_response,
+			routine_in.selected_route_index,
+		)
+		if routine.route_plan is None:
+			routine.route_plan = _to_route_plan(route_response)
+		else:
+			routine.route_plan.provider = route_response.provider
+			routine.route_plan.total_duration_minutes = route_response.total_duration_minutes
+			routine.route_plan.transfer_count = route_response.transfer_count
+			routine.route_plan.fare = route_response.fare
+			routine.route_plan.route_data = route_response.model_dump(mode="json")
+			routine.route_plan.updated_at = datetime.now(timezone.utc)
+
+	db.commit()
+	db.refresh(routine)
+	return routine
+
+
+def _apply_routine_attributes(routine: Routine, routine_in: RoutineCreate | RoutineUpdate) -> None:
 	routine.name = routine_in.name
 	routine.departure_stop = routine_in.departure_stop
 	routine.arrival_stop = routine_in.arrival_stop
@@ -158,29 +168,6 @@ async def update_routine(
 	routine.notify_mins_before = routine_in.notify_mins_before
 	routine.enabled = routine_in.enabled
 	routine.exclude_holidays = routine_in.exclude_holidays
-	route_response = await _build_route_plan(routine_in, route_service)
-	if route_response is None:
-		# 좌표가 제거되면 더 이상 유효한 저장 경로가 없으므로 함께 제거합니다.
-		routine.route_plan = None
-	else:
-		route_response = _select_route_with_alternatives(
-			route_response,
-			routine_in.selected_route_index,
-		)
-		# 출발지·도착지 변경 시 기존 계획을 최신 경로로 교체합니다.
-		if routine.route_plan is None:
-			routine.route_plan = _to_route_plan(route_response)
-		else:
-			routine.route_plan.provider = route_response.provider
-			routine.route_plan.total_duration_minutes = route_response.total_duration_minutes
-			routine.route_plan.transfer_count = route_response.transfer_count
-			routine.route_plan.fare = route_response.fare
-			routine.route_plan.route_data = route_response.model_dump(mode="json")
-			routine.route_plan.updated_at = datetime.now(timezone.utc)
-	# 수정 내용을 DB에 반영하고 최신 객체를 반환합니다.
-	db.commit()
-	db.refresh(routine)
-	return routine
 
 
 async def _build_route_plan(

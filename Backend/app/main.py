@@ -80,10 +80,10 @@ except Exception as e:
     print(f"Auto migration note: {e}")
 
 app = FastAPI(
-    title= settings.PROJECT_NAME,
-    description="onTime",
-    version="0.0.0",
-    lifespan=lifespan
+    title=settings.PROJECT_NAME,
+    description="OnTime 대중교통 루틴 알림 API 서버",
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,7 +91,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

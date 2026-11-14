@@ -11,7 +11,7 @@ class RoutineProvider with ChangeNotifier {
   String authToken;
 
   List<RoutineModel> _routines = [];
-  Map<String, RoutineExecutionModel> _executions = {};
+  final Map<String, RoutineExecutionModel> _executions = {};
   bool _isLoading = false;
   String? _errorMessage;
   bool _isDisposed = false;
@@ -51,43 +51,45 @@ class RoutineProvider with ChangeNotifier {
 
   ApiClient get _apiClient => ApiClient(token: authToken);
 
+  String get _cacheKey => 'cached_routines_${authToken.hashCode}';
+
   Future<void> _loadCachedRoutines() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'cached_routines_${authToken.hashCode}';
-      final cachedJson = prefs.getString(cacheKey);
+      final cachedJson = prefs.getString(_cacheKey);
       if (cachedJson != null && cachedJson.isNotEmpty) {
         final List decoded = json.decode(cachedJson);
         _routines = decoded.map((j) => RoutineModel.fromJson(j)).toList();
         notifyListeners();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('캐시 로드 실패: $e');
+    }
+  }
+
+  Future<void> _saveCachedRoutines(dynamic jsonList) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cacheKey, json.encode(jsonList));
+    } catch (e) {
+      debugPrint('캐시 저장 실패: $e');
+    }
   }
 
   Future<void> fetchRoutines() async {
     if (authToken.isEmpty) return;
 
-    // 1. 디바이스 로컬 저장소 캐시 먼저 로드 (0ms 로딩)
     await _loadCachedRoutines();
-
-    // 이미 캐시 데이터가 있으면 로딩 상태 스킵
     if (_routines.isEmpty) {
       _setLoading(true);
     }
-
     _errorMessage = null;
 
     try {
       final List res = await _apiClient.get(ApiConfig.routines);
       _routines = res.map((j) => RoutineModel.fromJson(j)).toList();
       notifyListeners();
-
-      // 2. 최신 루틴 데이터를 디바이스 저장소에 캐싱
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final cacheKey = 'cached_routines_${authToken.hashCode}';
-        await prefs.setString(cacheKey, json.encode(res));
-      } catch (_) {}
+      await _saveCachedRoutines(res);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -138,14 +140,12 @@ class RoutineProvider with ChangeNotifier {
       _routines.add(newRoutine);
       notifyListeners();
 
-      // 새 루틴 추가 즉시 실시간 대중교통 정보 비동기 수신
-      final fallbackRoute = RouteResponseModel.empty();
       executeRoutine(newRoutine.routineId).catchError((_) => RoutineExecutionModel(
             executionId: '',
             routineId: newRoutine.routineId,
             executionDate: '',
             status: 'MONITORING',
-            route: newRoutine.routePlan?.route ?? fallbackRoute,
+            route: newRoutine.routePlan?.route ?? RouteResponseModel.empty(),
             lastCheckedAt: '',
           ));
       return newRoutine;
@@ -197,15 +197,8 @@ class RoutineProvider with ChangeNotifier {
         notifyListeners();
       }
 
-      // 캐시 갱신
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final cacheKey = 'cached_routines_${authToken.hashCode}';
-        await prefs.setString(
-            cacheKey, json.encode(_routines.map((r) => r.toJson()).toList()));
-      } catch (_) {}
+      await _saveCachedRoutines(_routines.map((r) => r.toJson()).toList());
 
-      // 수정 후 비동기 실시간 정보 수신
       executeRoutine(updatedRoutine.routineId).catchError((_) => RoutineExecutionModel(
             executionId: '',
             routineId: updatedRoutine.routineId,
@@ -231,23 +224,7 @@ class RoutineProvider with ChangeNotifier {
       _executions.remove(routineId);
       notifyListeners();
 
-      // 캐시 갱신
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final cacheKey = 'cached_routines_${authToken.hashCode}';
-        final jsonList = _routines.map((r) => {
-          'routine_id': r.routineId,
-          'user_id': r.userId,
-          'name': r.name,
-          'departure_stop': r.departureStop,
-          'arrival_stop': r.arrivalStop,
-          'scheduled_days': r.scheduledDays,
-          'departure_time': r.departureTime,
-          'notify_mins_before': r.notifyMinsBefore,
-          'enabled': r.enabled,
-        }).toList();
-        await prefs.setString(cacheKey, json.encode(jsonList));
-      } catch (_) {}
+      await _saveCachedRoutines(_routines.map((r) => r.toJson()).toList());
     } catch (e) {
       _errorMessage = e.toString();
       rethrow;
