@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/routine_provider.dart';
 import 'providers/route_search_provider.dart';
-import 'providers/arrival_provider.dart';
 import 'dart:async';
 import 'screens/splash_screen.dart';
 import 'services/push_notification_service.dart';
@@ -62,10 +61,6 @@ class TransportApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, RouteSearchProvider>(
           create: (_) => RouteSearchProvider(''),
           update: (_, auth, previous) => RouteSearchProvider(auth.token ?? ''),
-        ),
-        ChangeNotifierProxyProvider<AuthProvider, ArrivalProvider>(
-          create: (_) => ArrivalProvider(''),
-          update: (_, auth, previous) => ArrivalProvider(auth.token ?? ''),
         ),
       ],
       child: MaterialApp(

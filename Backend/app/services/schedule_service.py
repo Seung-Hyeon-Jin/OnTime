@@ -13,14 +13,6 @@ class ScheduleEntry:
     interval_seconds: int | None = None
 
 
-class EmptyScheduleProvider:
-    """시간표 저장소가 연결되지 않은 상태를 명시적으로 나타내는 fallback입니다."""
-
-    reason = "schedule_data_unconfigured"
-
-    def get(self, *, transport_type: str, line_name: str | None, at: datetime) -> ScheduleEntry | None:
-        _ = (transport_type, line_name, at)
-        return None
 
 
 @dataclass(frozen=True)

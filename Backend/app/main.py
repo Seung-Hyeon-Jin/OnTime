@@ -81,7 +81,7 @@ except Exception as e:
 
 app = FastAPI(
     title= settings.PROJECT_NAME,
-    description="임시",
+    description="onTime",
     version="0.0.0",
     lifespan=lifespan
 )
