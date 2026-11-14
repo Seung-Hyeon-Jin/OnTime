@@ -8,7 +8,7 @@ from app.core.database import Base
 
 
 class RoutineNotification(Base):
-    # 외부 푸시 발송 전 알림을 저장해 재시작·재시도에도 중복 발송을 막습니다.
+    # 알림 중복 발송 방지
     __tablename__ = "routine_notifications"
 
     notification_id: Mapped[str] = mapped_column(

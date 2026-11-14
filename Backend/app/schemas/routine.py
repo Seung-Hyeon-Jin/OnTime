@@ -13,7 +13,6 @@ class RoutineBase(BaseModel):
     notify_mins_before: int
     enabled: bool = True
     exclude_holidays: bool = False
-    # 좌표가 있으면 루틴 등록과 동시에 저장할 경로 계획을 생성합니다.
     origin: Location | None = None
     destination: Location | None = None
     selected_route_index: int = 0
@@ -24,7 +23,8 @@ class RoutineCreate(RoutineBase):
 class RoutineUpdate(RoutineBase):
     pass
 
-# API 응답용 스키마
+
+
 class RoutineResponse(RoutineBase):
     routine_id: str
     user_id: str

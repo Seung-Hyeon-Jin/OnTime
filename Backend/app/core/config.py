@@ -20,7 +20,6 @@ class Settings(BaseSettings):
         "국토교통부_전국 버스정류장 위치정보_20251031.csv",
     )
     ROUTE_ARRIVAL_STOP_LIMIT: int = 4
-    # 실행 예정 루틴을 확인하는 worker의 주기입니다.
     ROUTINE_WORKER_INTERVAL_SECONDS: int = 60
     FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
     REDIS_URL: str | None = "redis://localhost:6379/0"

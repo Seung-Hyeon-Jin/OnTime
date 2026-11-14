@@ -8,9 +8,6 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import  engine, Base
 from app.core.database import get_db
-from app.models.route_plan import RoutePlan  # noqa: F401 - 테이블 등록을 위해 import
-from app.models.routine_execution import RoutineExecution  # noqa: F401 - 테이블 등록을 위해 import
-from app.models.routine_notification import RoutineNotification  # noqa: F401 - 테이블 등록을 위해 import
 
 from app.routers import auth, routines, arrivals, routes, locations
 from app.clients.bus_client import BusClient
