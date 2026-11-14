@@ -8,7 +8,7 @@ from app.core.database import Base
 
 
 class RoutePlan(Base):
-    # 루틴 등록 시 계산한 경로를 보존해 실행 시 다시 경로를 검색하지 않도록 합니다.
+    # 중복 경로 검색 방지
     __tablename__ = "route_plans"
 
     route_plan_id: Mapped[str] = mapped_column(
@@ -32,6 +32,7 @@ class RoutePlan(Base):
 
     routine: Mapped["Routine"] = relationship(back_populates="route_plan")
 
+    #속성처럼 접근 가능
     @property
     def route(self) -> dict:
         # 응답 스키마가 저장된 JSON을 RouteResponse로 검증할 수 있게 노출합니다.

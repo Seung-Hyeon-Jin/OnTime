@@ -38,13 +38,14 @@ def decode_access_token(token: str) -> tuple[str, int]:
 
 
 
-#로그인 시 사용될 비밀번호 검증 함수
+#비밀번호 검증
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password,hashed_password)
 
 #회원가입 시 사용될 hash 생성 후 반환 함수
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 #로그인, 회원가입 성공 후 토근 발급 함수
 def create_access_token(data : dict) -> str:
     to_encode = data.copy()
