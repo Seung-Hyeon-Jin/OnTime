@@ -1,10 +1,10 @@
-# OnTime Backend 🚀
+# OnTime Backend 
 
 FastAPI 기반의 OnTime 대중교통 루틴 및 실시간 정보 제공 REST API 서버
 
 ---
 
-## 📌 주요 특징
+##  주요 특징
 - **FastAPI 기반 고성능 비동기 API:** Uvicorn 및 Pydantic을 활용한 엄격한 데이터 검증 및 빠른 응답 속도
 - **SQLAlchemy ORM:** PostgreSQL 및 SQLite 호환 데이터 모델링 및 자동 마이그레이션 지원
 - **외부 교통 API 연동:** ODsay 길찾기, 국토교통부 버스 도착정보, 서울시 지하철 실시간 정보 클라이언트 통합
@@ -12,7 +12,7 @@ FastAPI 기반의 OnTime 대중교통 루틴 및 실시간 정보 제공 REST AP
 
 ---
 
-## ⚙️ 환경 설정 및 설치
+##  환경 설정 및 설치
 
 ### 1. 가상환경 생성 및 활성화
 ```bash
@@ -44,7 +44,7 @@ SECRET_KEY= #개인의 Private한 충분한 길이의 SECRET_KEY
 
 ---
 
-## ▶️ 서버 실행
+## 서버 실행
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
