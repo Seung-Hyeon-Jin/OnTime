@@ -4,7 +4,7 @@ Flutter로 제작된 OnTime 대중교통 루틴 및 실시간 도착 정보 모�
 
 ---
 
-## 🛠️ 기술스택 + 라이브러리
+## 기술스택 + 라이브러리
 - **Framework:** Flutter (SDK `>=3.0.0 <4.0.0`)
 - **State Management:** `provider`
 - **Networking:** `http`
@@ -15,7 +15,7 @@ Flutter로 제작된 OnTime 대중교통 루틴 및 실시간 도착 정보 모�
 
 ---
 
-## 📂 디렉토리 (`lib/`)
+## 디렉토리 (`lib/`)
 
 ```text
 lib/
@@ -30,7 +30,7 @@ lib/
 
 ---
 
-## 🚀 실행
+## 실행
 
 ### Before(필수)
 Flutter SDK 및 안드로이드 스튜디오 설치
@@ -42,7 +42,7 @@ flutter pub get
 
 ### 2. 애플리케이션 실행
 연결된 에뮬레이터 또는 실제 기기에서 실행합니다.
-> **💡 주의:** 본 프로젝트는 로컬 백엔드 서버 연동 특성상 테스트 시 **PC와 모바일 기기가 동일한 Wi-Fi 네트워크**에 연결되어 있어야 합니다.  
+> **주의:** 본 프로젝트는 로컬 백엔드 서버 연동 특성상 테스트 시 **PC와 모바일 기기가 동일한 Wi-Fi 네트워크**에 연결되어 있어야 합니다.  
 또한, Frontend/lib/core/config/api_config.dart의 physicalPhoneIp를 실행하는 PC의 ip로 할당해야합니다.
 ```bash
 flutter run
@@ -51,7 +51,7 @@ flutter run
 
 ---
 
-## ✨ 주요 화면 흐름
+## 주요 화면 흐름
 1. **스플래시 / 로그인 화면 (`splash_screen.dart`, `login_screen.dart`):** 사용자 인증 및 토큰 관리
 2. **메인 홈 화면 (`home_screen.dart`):** 등록된 출퇴근 루틴 카드 목록 확인, 실시간 버스·지하철 도착 정보 및 환승 가능 여부 모니터링
 3. **루틴 추가/수정 화면 (`routine_add_screen.dart`, `routine_edit_screen.dart`):** 출발지·도착지 검색 및 대중교통 경로 선택/수정
