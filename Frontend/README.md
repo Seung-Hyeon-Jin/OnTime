@@ -1,54 +1,58 @@
-# OnTime Backend 🚀
+# OnTime Frontend 
 
-FastAPI 기반의 OnTime 대중교통 루틴 및 실시간 정보 제공 REST API 서버
-
----
-
-## 📌 주요 특징
-- **FastAPI 기반 고성능 비동기 API:** Uvicorn 및 Pydantic을 활용한 엄격한 데이터 검증 및 빠른 응답 속도
-- **SQLAlchemy ORM:** PostgreSQL 및 SQLite 호환 데이터 모델링 및 자동 마이그레이션 지원
-- **외부 교통 API 연동:** ODsay 길찾기, 국토교통부 버스 도착정보, 서울시 지하철 실시간 정보 클라이언트 통합
-- **백그라운드 루틴 워커:** 주기적인 스케줄 검사 및 알림 생성 워커 탑재
+Flutter로 제작된 OnTime 대중교통 루틴 및 실시간 도착 정보 모바일 애플리케이션입니다.
 
 ---
 
-## ⚙️ 환경 설정 및 설치
+## 🛠️ 기술스택 + 라이브러리
+- **Framework:** Flutter (SDK `>=3.0.0 <4.0.0`)
+- **State Management:** `provider`
+- **Networking:** `http`
+- **Location:** `geolocator`
+- **Local Storage:** `shared_preferences`
+- **Notifications:** `firebase_core`, `firebase_messaging`, `flutter_local_notifications`
+- **UI Styling:** `google_fonts`, Material Design 3
 
-### 1. 가상환경 생성 및 활성화
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
-```
+---
 
-### 2. 의존성 패키지 설치
-```bash
-pip install -r requirements.txt
-```
+## 📂 디렉토리 (`lib/`)
 
-### 3. 환경 변수 설정 (`.env`)
-`.env.example` 파일을 참고하여 `.env` 파일을 생성하고 필요한 API Key 및 데이터베이스 URL을 설정합니다.
-```env
-DATABASE_URL=sqlite:///./ontime.db # 또는 PostgreSQL 연결 문자열
-ODSAY_API_KEY= #https://lab.odsay.com/contact/contact
-SUBWAY_SERVICE_KEY= #https://data.seoul.go.kr/dataList/OA-12764/F/1/datasetView.do
-BUS_SERVICE_KEY= #https://www.data.go.kr/iim/api/selectAPIAcountView.do
-KAKAO_REST_API_KEY= #KAKAO LOCAL API
-GYEONGGI_BUS_SERVICE_KEY= #https://www.data.go.kr/iim/api/selectAPIAcountView.do
-FIREBASE_SERVICE_ACCOUNT_PATH= #푸쉬 알림을 위함, 없어도 동작 가능
-SECRET_KEY= #개인의 Private한 충분한 길이의 SECRET_KEY
-
+```text
+lib/
+├── core/                  # 환경 설정, 네트워크 API 클라이언트 등
+├── models/                # 데이터 모델 (루틴, 경로, 도착정보, 사용자 등)
+├── providers/             # 상태 관리 프로바이더 (Auth, Routine, RouteSearch)
+├── screens/               # 주요 화면 (Login, Home, RoutineAdd/Edit, Profile)
+├── services/              # 푸시 알림 및 외부 서비스 연동
+├── utils/                 # 버스/지하철 실시간 정규화 및 필터 유틸리티
+└── widgets/               # 공통 위젯 및 카드 컴포넌트
 ```
 
 ---
 
-## ▶️ 서버 실행
+## 🚀 실행
 
+### Before(필수)
+Flutter SDK 및 안드로이드 스튜디오 설치
+
+### 1. 의존성 패키지 다운로드
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+flutter pub get
 ```
 
+### 2. 애플리케이션 실행(Only 안드로이드)
+연결된 에뮬레이터 또는 실제 기기에서 실행합니다.
+> **💡 주의:** 본 프로젝트는 로컬 백엔드 서버 연동 특성상 테스트 시 **PC와 모바일 기기가 동일한 Wi-Fi 네트워크**에 연결되어 있어야 합니다.  
+또한, API_HOST 환경변수를 이용해서 host의 ip값을 직접 입력하여 빌드하여야 합니다.
+```bash
+flutter build apk --release --dart-define=API_HOST="host_ip"
+```
+빌드 완료 후 apk 파일을 안드로이드 기기에 설치 후 실행
 
 
+---
+
+## ✨ 주요 화면 흐름
+1. **스플래시 / 로그인 화면 (`splash_screen.dart`, `login_screen.dart`):** 사용자 인증 및 토큰 관리
+2. **메인 홈 화면 (`home_screen.dart`):** 등록된 출퇴근 루틴 카드 목록 확인, 실시간 버스·지하철 도착 정보 및 환승 가능 여부 모니터링
+3. **루틴 추가/수정 화면 (`routine_add_screen.dart`, `routine_edit_screen.dart`):** 출발지·도착지 검색 및 대중교통 경로 선택/수정
