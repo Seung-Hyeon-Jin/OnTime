@@ -75,4 +75,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 cd Frontend
 flutter pub get
 flutter run
+or
+flutter build apk --release --dart-define=API_HOST="host_ip"
+이후 모바일 기기에 설치 후 실행
 ```
